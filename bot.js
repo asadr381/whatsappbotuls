@@ -8,8 +8,10 @@ const port = 3000;
 const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0/475808092293189/messages';
 const ACCESS_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GGZCL8aTcLhLa8snXDcDWSGh35wUmCSjP8QRE94ZBhZC4eJZCLxEFS79YWn2evvGZBRQfGXsRAGgu6VHlQFrgwZA7BV7stZC4cv1VFWFAi9rnaOXR8ov8JYNxoRldWPy09HuD0IJ9ynQ3DAZDZD'; // Replace with your actual access token
 const VERIFY_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GGZCL8aTcLhLa8snXDcDWSGh35wUmCSjP8QRE94ZBhZC4eJZCLxEFS79YWn2evvGZBRQfGXsRAGgu6VHlQFrgwZA7BV7stZC4cv1VFWFAi9rnaOXR8ov8JYNxoRldWPy09HuD0IJ9ynQ3DAZDZD';
+const FRAPPE_URL = "https://ups-uat.sowaanerp.com";
+const API_KEY = "a660048fb475f8f";  
+const API_SECRET = "15044e3bdf6d010";  
 
-// Enable CORS for all requests
 app.use(cors({
     origin: '*',  // Allow all domains, you can replace '*' with specific domains like ['http://example.com'] to allow only specific origins
     methods: ['GET', 'POST'],  // Allow GET and POST methods
@@ -21,6 +23,7 @@ app.use(bodyParser.json());
 
 // Store user states for tracking requests
 let userTrackingState = {};
+let leadCreationState = {};
 
 const welcomeMessage = `🌟 *Welcome to UNIVERSAL LOGISTICS SERVICES, AUTHORIZED SERVICE CONTRACTOR FOR UPS* 🌟
 
@@ -56,47 +59,34 @@ app.get('/webhook', (req, res) => {
 // Webhook for incoming messages
 app.post('/webhook', async (req, res) => {
     let data = req.body;
-    console.log("📥 Received webhook data:", JSON.stringify(data, null, 2));
+    console.log("\ud83d\udce5 Received webhook data:", JSON.stringify(data, null, 2));
 
     const message = data?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
     const contact = data?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0];
 
     if (message && contact) {
         const senderId = message.from;
-        const senderName = contact.profile?.name || "User";
         const userMessage = message.text?.body.trim();
 
-        console.log(`💬 Message received from ${senderName}:`, userMessage);
-
+        // TRACKING FLOW (Option 1)
         if (userTrackingState[senderId]) {
-            // User is expected to send a tracking number
             const trackingNumber = userMessage;
-            delete userTrackingState[senderId]; // Clear tracking request state
-            
-            sendWhatsAppMessage(senderId, `🔍 Fetching details for tracking number: *${trackingNumber}*...`);
-            
-            // Fetch tracking data from API
+            delete userTrackingState[senderId]; // Clear state
+
+            sendWhatsAppMessage(senderId, `\ud83d\udd0d Fetching details for tracking number: *${trackingNumber}*...`);
             try {
-                // Fetch tracking details
                 const trackingResponse = await axios.get(`https://excel-api-0x2r.onrender.com/track/${trackingNumber}`);
                 const packageData = trackingResponse.data.trackResponse?.shipment[0]?.package[0];
 
                 if (packageData) {
-                    const deliveryDate = packageData.deliveryDate?.[0]?.date || "N/A";
-                    const formattedDeliveryDate = deliveryDate !== "N/A"
-                        ? `${deliveryDate.slice(0, 4)}-${deliveryDate.slice(4, 6)}-${deliveryDate.slice(6, 8)}`
-                        : "N/A";
+                    const formattedActivities = packageData.activity?.map(activity => 
+                        `\ud83d\udfe1 ${activity.status.description} - ${activity.location.address.city}, ${activity.location.address.country} on ${activity.date.slice(0, 4)}-${activity.date.slice(4, 6)}-${activity.date.slice(6, 8)}`
+                    ).join("\n") || "No activity available.";
 
-                    const formattedActivities = packageData.activity?.map(activity => {
-                        return `🟡 ${activity.status.description} - ${activity.location.address.city}, ${activity.location.address.country} on ${activity.date.slice(0, 4)}-${activity.date.slice(4, 6)}-${activity.date.slice(6, 8)} at ${activity.time.slice(0, 2)}:${activity.time.slice(2, 4)}:${activity.time.slice(4, 6)}`;
-                    }).join("\n") || "No activity available.";
-
-                    const trackingDetails = `📦 *Tracking Number:* ${trackingNumber}
-🚚 *Status:* ${packageData.currentStatus?.description || "N/A"}
-📅 *Delivery Date:* ${formattedDeliveryDate}
-📍 *Last Location:* ${packageData.activity?.[0]?.location?.address?.city || "Unknown"}, ${packageData.activity?.[0]?.location?.address?.country || "Unknown"}
-📦 *Weight:* ${packageData.weight?.weight || "N/A"} kg
-📜 *Service:* ${packageData.service?.description || "N/A"}
+                    const trackingDetails = `\ud83d\udce6 *Tracking Number:* ${trackingNumber}
+\ud83d\ude9a *Status:* ${packageData.currentStatus?.description || "N/A"}
+\ud83d\udcc5 *Delivery Date:* ${packageData.deliveryDate ? packageData.deliveryDate[0]?.date : "N/A"}
+\ud83d\udce6 *Weight:* ${packageData.weight?.weight || "N/A"} kg
 
 ✈️ *Shipment Journey:*
 ${formattedActivities}`;
@@ -106,19 +96,93 @@ ${formattedActivities}`;
                     sendWhatsAppMessage(senderId, "⚠️ No shipment details found for this tracking number.");
                 }
             } catch (error) {
-                console.error("🚨 Error fetching shipment details:", error);
-                sendWhatsAppMessage(senderId, "⚠️ An error occurred while fetching shipment details. Please try again.");
+                sendWhatsAppMessage(senderId, "⚠️ Error fetching shipment details.");
             }
-        } else if (userMessage === "1") {
-            userTrackingState[senderId] = true;
-            sendWhatsAppMessage(senderId, "📦 Please enter your tracking number:");
-        } else {
-            sendWhatsAppMessage(senderId, welcomeMessage);
+            return res.sendStatus(200);
+        }
+
+        // LEAD CREATION FLOW (Option 2)
+        if (leadCreationState[senderId]) {
+            leadCreationState[senderId].push(userMessage);
+
+            switch (leadCreationState[senderId].length) {
+                case 1:
+                    sendWhatsAppMessage(senderId, "📧 Please enter your email:");
+                    break;
+                case 2:
+                    sendWhatsAppMessage(senderId, "📱 Please enter your mobile number:");
+                    break;
+                case 3:
+                    sendWhatsAppMessage(senderId, "📦 Are you interested in *Export* or *Import*? (Reply with 'Export' or 'Import')");
+                    break;
+                case 4:
+                    sendWhatsAppMessage(senderId, `❓ Please select your request type:\n1️⃣ Rate Inquiry\n2️⃣ Transit Time\n3️⃣ Customs Requirements / Paper Work\n4️⃣ Destination\n5️⃣ Commodity Information\n6️⃣ Product Inquiry`);
+                    break;
+                case 5:
+                    sendWhatsAppMessage(senderId, "✍️ Please enter more details about your request:");
+                    break;
+                case 6:
+                    const [leadName, email, mobile, leadType, requestType, requestDetails] = leadCreationState[senderId];
+                    
+                    const requestTypeMap = {
+                        "1": "Rate Inquiry",
+                        "2": "Transit Time",
+                        "3": "Customs Requirements / Paper Work",
+                        "4": "Destination",
+                        "5": "Commodity Information",
+                        "6": "Product Inquiry"
+                    };
+
+                    const formattedRequestType = requestTypeMap[requestType] || requestType;
+
+                    const leadData = {
+                        lead_name: leadName,
+                        email_id: email,
+                        mobile_no: mobile,
+                        status: "Open",
+                        custom_lead_type: leadType,
+                        custom_request_type2: formattedRequestType,
+                        custom_request_details: requestDetails
+                    };
+
+                    delete leadCreationState[senderId]; // Clear state after lead creation
+                    createLead(senderId, leadData);
+                    break;
+            }
+            return res.sendStatus(200);
+        }
+
+        // OPTION SELECTION HANDLING
+        switch (userMessage) {
+            case "1":
+                userTrackingState[senderId] = true;
+                sendWhatsAppMessage(senderId, "📦 Please enter your tracking number:");
+                break;
+            case "2":
+                leadCreationState[senderId] = [];
+                sendWhatsAppMessage(senderId, "📝 Please enter your full name:");
+                break;
+            default:
+                sendWhatsAppMessage(senderId, welcomeMessage);
         }
     }
     res.sendStatus(200);
 });
-
+async function createLead(senderId, leadData) {
+    try {
+        const response = await axios.post(`${FRAPPE_URL}/api/resource/Lead`, leadData, {
+            headers: {
+                "Authorization": `token ${API_KEY}:${API_SECRET}`,
+                "Content-Type": "application/json"
+            }
+        });
+        sendWhatsAppMessage(senderId, "✅ Your business inquiry has been recorded. Our team will contact you shortly.");
+        console.log("📌 Lead created successfully:", response.data);
+    } catch (error) {
+        console.error("🚨 Error creating lead:", error.response?.data || error.message);
+        sendWhatsAppMessage(senderId, "⚠️ Failed to create business inquiry. Please try again later.");
+    }
+}
 // Function to send a WhatsApp message
 async function sendWhatsAppMessage(to, text) {
     try {
