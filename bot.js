@@ -26,15 +26,16 @@ let userTrackingState = {};
 let ticketCreationState = {}; // New state for ticket creation
 let locationSelectionState = {};
 let ticketCreationStates = {};
+let ticketCreationStatess = {};
 
 // Define office locations
 const officeLocations = {
-    "1": { name: "Sialkot", address: "CHOWK ANWAR, KHAWAJA MONUMENT, HAJI PURA ROAD, NEAR FAYSAL BANK, SIALKOT - PAKISTAN. (0092) 52-3556344,3556347" },
-    "2": { name: "Karachi", address: "E-15/ PECHS, BLOCK 6, SHAHRA-E-FAISAL, NURSERY, KARACHI-PAKISTAN. (0092) 21-34521387-88" },
-    "3": { name: "Lahore", address: "204 - SCOTCH CORNER, UPPER MALL, SCHEME LAHORE - PAKISTAN.0092) 42-35753888,35754666" },
-    "4": { name: "Faisalabad", address: "OFFICE NO. 13, REGENCY INTERNATIONAL 949, THE MALL, NEAR BEST WESTERN HOTEL, OPP PIA OFFICE, FAISALABAD - PAKISTAN. PH: (0092) 41-2600236" },
-    "5": { name: "Peshawar", address: "MDF 23, GROUND FLOOR NAMAL PLAZA, KHYBER SUPER MARKET, BARA ROAD, NEAR QAYYUM STADIUM PESHAWAR - PAKISTAN (0092) 91-5252046-47" },
-    "6": { name: "Islamabad", address: "BUILDING NO. 19 FAQIR APPI ROAD, NEAR METRO CASH & CARRY SECTOR I - 11/3, ISLAMABAD - PAKISTAN. (0092) 51-8733361-62, 51-4863971-72" },
+    "1": { name: "Sialkot", address: "CHOWK ANWAR, KHAWAJA MONUMENT, HAJI PURA ROAD, NEAR FAYSAL BANK, SIALKOT - PAKISTAN. (0092) 52-3556344,3556347", link: "https://www.google.com/maps/search/?api=1&query=19.080,72.896" },
+    "2": { name: "Karachi", address: "E-15/ PECHS, BLOCK 6, SHAHRA-E-FAISAL, NURSERY, KARACHI-PAKISTAN. (0092) 21-34521387-88", link: "https://www.google.com/maps/search/?api=1&query=70,70" },
+    "3": { name: "Lahore", address: "204 - SCOTCH CORNER, UPPER MALL, SCHEME LAHORE - PAKISTAN.0092) 42-35753888,35754666", link: "https://www.google.com/maps/search/?api=1&query=70,70" },
+    "4": { name: "Faisalabad", address: "OFFICE NO. 13, REGENCY INTERNATIONAL 949, THE MALL, NEAR BEST WESTERN HOTEL, OPP PIA OFFICE, FAISALABAD - PAKISTAN. PH: (0092) 41-2600236", link: "https://www.google.com/maps/search/?api=1&query=70,70"  },
+    "5": { name: "Peshawar", address: "MDF 23, GROUND FLOOR NAMAL PLAZA, KHYBER SUPER MARKET, BARA ROAD, NEAR QAYYUM STADIUM PESHAWAR - PAKISTAN (0092) 91-5252046-47", link: "https://www.google.com/maps/search/?api=1&query=70,70" },
+    "6": { name: "Islamabad", address: "BUILDING NO. 19 FAQIR APPI ROAD, NEAR METRO CASH & CARRY SECTOR I - 11/3, ISLAMABAD - PAKISTAN. (0092) 51-8733361-62, 51-4863971-72", link: "https://www.google.com/maps/search/?api=1&query=70,70" },
 };
 
 const welcomeMessage = `🌟 *Welcome to UNIVERSAL LOGISTICS SERVICES, AUTHORIZED SERVICE CONTRACTOR FOR UPS* 🌟
@@ -90,7 +91,7 @@ app.post('/webhook', async (req, res) => {
 
                 if (packageData) {
                     const formattedActivities = packageData.activity?.map(activity =>
-                        `\ud83d\udfe1 ${activity.status.description} - ${activity.location.address.city}, ${activity.location.address.country} on ${activity.date.slice(0, 4)}-${activity.date.slice(4, 6)}-${activity.date.slice(6, 8)}`
+                        `\ud83d\udfe1 ${activity.status.description || " "}  - ${activity.location.address.city || " "}, ${activity.location.address.country || " "} on ${activity.date.slice(0, 4) || " "}-${activity.date.slice(4, 6) || " "}-${activity.date.slice(6, 8) || " "}`
                     ).join("\n") || "No activity available.";
 
                     const trackingDetails = `\ud83d\udce6 *Tracking Number:* ${trackingNumber}
@@ -115,7 +116,7 @@ ${formattedActivities}`;
         if (locationSelectionState[senderId]) {
             const selectedLocation = officeLocations[userMessage];
             if (selectedLocation) {
-                sendWhatsAppMessage(senderId, `📍 *${selectedLocation.name} Office Location:*\n${selectedLocation.address}`);
+                sendWhatsAppMessage(senderId, `📍 *${selectedLocation.name} Office Location:*\n${selectedLocation.address} \n${selectedLocation.link} `);
             } else {
                 sendWhatsAppMessage(senderId, "⚠️ Invalid selection. Please choose a valid option.");
             }
@@ -149,7 +150,7 @@ ${formattedActivities}`;
                 break;
             case 7:
                 // Extract all collected data
-                const [customerName, email, mobile, shipmentFrom, shipmentTo, weight, shipmentType] = ticketCreationState[senderId];
+                const [customerName, email, mobile, shipmentFrom, shipmentTo, shipmentType,weight] = ticketCreationState[senderId];
     
                 // Map shipment type to a human-readable format
                 const shipmentTypeMap = {
@@ -182,6 +183,15 @@ ${formattedActivities}`;
         }
         return res.sendStatus(200);
     }
+
+
+
+
+
+
+
+
+    //genral query
     if (ticketCreationStates[senderId]) {
         ticketCreationStates[senderId].push(userMessage);
     
@@ -223,7 +233,7 @@ ${formattedActivities}`;
                 // Prepare the ticket data for the API
                 const ticketData = {
                     custom_customer_name: customerName,
-                    subject: "Whatsapp Query",
+                    subject: "General Query",
                     raised_by: "mraza@ups.com",
                     agent_group: "TeleSales",
                     custom_employee: "EMP603",
@@ -250,6 +260,68 @@ ${formattedActivities}`;
         }
         return res.sendStatus(200);
     } 
+
+
+
+
+
+
+
+
+
+
+
+
+//customer service
+
+    if (ticketCreationStatess[senderId]) {
+        ticketCreationStatess[senderId].push(userMessage);
+    
+        switch (ticketCreationStatess[senderId].length) {
+            case 1:
+                sendWhatsAppMessage(senderId, "📧 Please enter your email:");
+                break;
+            case 2:
+                sendWhatsAppMessage(senderId, "📱 Please enter your mobile number:");
+                break;
+            case 3:
+                sendWhatsAppMessage(senderId, "📱 Please Enter Your CallBack Number");
+                break;
+            case 4:
+                sendWhatsAppMessage(senderId, "✍️ Please describe your issue or query:");
+                break;
+            case 5:
+                // Extract all collected data
+                const [customerName, email, mobile,callback, query ] = ticketCreationStatess[senderId];
+    
+                // Map ticket type to a human-readable format
+    
+
+    
+                // Prepare the ticket data for the API
+                const ticketData = {
+                    custom_customer_name: customerName,
+                    subject: "Call Back",
+                    raised_by: "mraza@ups.com",
+                    agent_group: "Customer Support",
+                    custom_employee: "EMP603",
+     
+                    description: `Details: ${query}, CallBack Number: ${callback} `,
+                    custom_customer_email_address: email,
+                    custom_customer_contact_number: mobile
+                };
+    
+                // Include optional fields if they are provided
+         
+                // Clear the state after ticket creation
+                delete ticketCreationStates[senderId];
+    
+                // Create the ticket in the system
+                createTicket(senderId, ticketData);
+                break;
+        }
+        return res.sendStatus(200);
+    }
     
 
         // OPTION SELECTION HANDLING
@@ -273,6 +345,10 @@ ${formattedActivities}`;
                     ticketCreationStates[senderId] = [];
                     sendWhatsAppMessage(senderId, "📝 Please enter your full name:");
                     break;
+            case "5":
+                    ticketCreationStatess[senderId] = [];
+                    sendWhatsAppMessage(senderId, "📝 Please enter your full name:");
+                    break;        
             default:
                 sendWhatsAppMessage(senderId, welcomeMessage);
         }
