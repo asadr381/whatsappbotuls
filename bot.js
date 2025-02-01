@@ -20,7 +20,7 @@ function isValidEmail(email) {
 
 // Phone number validation function
 function isValidPhoneNumber(phone) {
-    return /^\d{9,13}$/.test(phone);
+    return /^(0\d{3}-?\d{6,10}|3\d{9,10}|92\d{10,12})$/.test(phone);
 }
 
 app.use(cors({
