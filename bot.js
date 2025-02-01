@@ -119,8 +119,8 @@ ${formattedActivities}`;
                     sendWhatsAppMessage(senderId, "⚠️ No shipment details found for this tracking number.");
                 }
             } catch (error) {
-                sendWhatsAppMessage(senderId, "⚠️ Error fetching shipment details.");
-                sendWhatsAppMessage(senderId, "0️⃣ Main Menu");
+                sendWhatsAppMessage(senderId, "⚠️ Error fetching shipment details. \n0️⃣ Main Menu");
+      
             }
             return res.sendStatus(200);
         }
@@ -129,11 +129,11 @@ ${formattedActivities}`;
         if (locationSelectionState[senderId]) {
             const selectedLocation = officeLocations[userMessage];
             if (selectedLocation) {
-                sendWhatsAppMessage(senderId, `📍 *${selectedLocation.name} Office Location:*\n${selectedLocation.address} \n${selectedLocation.link} `);
-                sendWhatsAppMessage(senderId, "0️⃣ Main Menu");
+                sendWhatsAppMessage(senderId, `📍 *${selectedLocation.name} Office Location:*\n${selectedLocation.address} \n${selectedLocation.link} \n0️⃣ Main Menu` );
+     
             } else {
-                sendWhatsAppMessage(senderId, "⚠️ Invalid selection. Please choose a valid option.");
-                sendWhatsAppMessage(senderId, "0️⃣ Main Menu");
+                sendWhatsAppMessage(senderId, "⚠️ Invalid selection. Please choose a valid option. \n0️⃣ Main Menu");
+    
             }
             delete locationSelectionState[senderId]; // Clear state
             return res.sendStatus(200);
@@ -389,13 +389,13 @@ async function createTicket(senderId, ticketData) {
                 "Content-Type": "application/json"
             }
         });
-        sendWhatsAppMessage(senderId, "✅ Your request has been created successfully. Our team will contact you shortly.");
-        sendWhatsAppMessage(senderId, "0️⃣ Main Menu");
+        sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n0️⃣ Main Menu");
+
         console.log("📌 Ticket created successfully:", response.data);
     } catch (error) {
         console.error("🚨 Error creating ticket:", error.response?.data || error.message);
-        sendWhatsAppMessage(senderId, "⚠️ Failed to create request. Please try again later.");
-        sendWhatsAppMessage(senderId, "0️⃣ Main Menu");
+        sendWhatsAppMessage(senderId, "⚠️ Failed to create request. Please try again later. \n0️⃣ Main Menu");
+
     }
 }
 
