@@ -9,13 +9,12 @@ const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0/475808092293189/messa
 const ACCESS_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GGZCL8aTcLhLa8snXDcDWSGh35wUmCSjP8QRE94ZBhZC4eJZCLxEFS79YWn2evvGZBRQfGXsRAGgu6VHlQFrgwZA7BV7stZC4cv1VFWFAi9rnaOXR8ov8JYNxoRldWPy09HuD0IJ9ynQ3DAZDZD'; // Replace with your actual access token
 const VERIFY_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GGZCL8aTcLhLa8snXDcDWSGh35wUmCSjP8QRE94ZBhZC4eJZCLxEFS79YWn2evvGZBRQfGXsRAGgu6VHlQFrgwZA7BV7stZC4cv1VFWFAi9rnaOXR8ov8JYNxoRldWPy09HuD0IJ9ynQ3DAZDZD';
 const FRAPPE_URL = "https://ups.sowaanerp.com";
-const API_KEY = "7f9ceafe1f9cb28";
-const API_SECRET = "107d1e30c242a6f";
+const API_KEY = "6deab0c07f750cc";
+const API_SECRET = "588f60f1a3a5255";
 
 // Email validation function
 function isValidEmail(email) {
-    const allowedDomains = ["@ups.com", "@gmail.com", "@yahoo.com"];
-    return allowedDomains.some(domain => email.endsWith(domain));
+    return email.includes("@") && email.includes(".");
 }
 
 // Phone number validation function
@@ -61,8 +60,7 @@ Please reply with an option number:
 2️⃣ Get Shipment Rates  
 3️⃣ Locate Nearest Express Centre  
 4️⃣ General Query  
-5️⃣ Arrange Call Back from Customer Services
-6️⃣ Billing Query
+5️⃣ Arrange Call Back for Your Shipment
 `;
 
 // Webhook verification route (GET request)
@@ -149,7 +147,7 @@ ${formattedActivities}`;
                     break;
                 case 2:
                     if (!isValidEmail(ticketCreationState[senderId][1])) {
-                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email ending with @ups.com, @gmail.com, or @yahoo.com.");
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email");
                         ticketCreationState[senderId].pop(); // Remove invalid email
                     } else {
                         sendWhatsAppMessage(senderId, "📱 Please enter your mobile number:");
@@ -190,12 +188,12 @@ ${formattedActivities}`;
                         custom_customer_name: customerName,
                         custom_customer_email_address: email,
                         custom_customer_contact_number: mobile,
-                        subject: "Whatsapp Shipment Query",
-                        raised_by: "mraza@ups.com",
+                        subject: "Rate Inquiry Whatsapp",
+                        raised_by: email,
                         agent_group: "TeleSales",
-                        custom_employee: "EMP603",
-                        ticket_type: "Rate Inquiry Whatsapp",
-                        description: `Shipment From: ${shipmentFrom}, Shipment To: ${shipmentTo}, Weight: ${weight}kg, Shipment Type: ${formattedShipmentType}`
+                        custom_employee: "WebAPI",
+                        ticket_type: "Rate Inquiry",
+                        description: `Shipment From: ${shipmentFrom}, Shipment To: ${shipmentTo}, Shipment Type: ${formattedShipmentType},Weight: ${weight}kg`
                     };
 
                     // Clear the state after ticket creation
@@ -218,7 +216,7 @@ ${formattedActivities}`;
                     break;
                 case 2:
                     if (!isValidEmail(ticketCreationStates[senderId][1])) {
-                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email ending with @ups.com, @gmail.com, or @yahoo.com.");
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email.");
                         ticketCreationStates[senderId].pop(); // Remove invalid email
                     } else {
                         sendWhatsAppMessage(senderId, "📱 Please enter your mobile number:");
@@ -229,7 +227,7 @@ ${formattedActivities}`;
                         sendWhatsAppMessage(senderId, "⚠️ Invalid phone number. Please enter a valid phone number (9 to 13 digits).");
                         ticketCreationStates[senderId].pop(); // Remove invalid phone number
                     } else {
-                        sendWhatsAppMessage(senderId, "❓ Please select your ticket type:\n1️⃣ Commodity Information\n2️⃣Customs Requirements / Paper Work  \n3️⃣ Product Inquiry  \n4️⃣ Rate Inquiry  \n5️⃣ Transit Time");
+                        sendWhatsAppMessage(senderId, "❓ Please select your ticket type:\n1️⃣ Commodity Information\n2️⃣ Customs Requirements / Paper Work  \n3️⃣ Product Inquiry  \n4️⃣ Transit Time \n5️⃣ Corporate or Business Account" ) ;
                     }
                     break;
                 case 4:
@@ -243,15 +241,15 @@ ${formattedActivities}`;
                     break;
                 case 7:
                     // Extract all collected data
-                    const [customerName, email, mobile, ticketType, description, trackingNumber, accountNumber] = ticketCreationStates[senderId];
+                    const [customerName, email, mobile, ticketType, trackingNumber, accountNumber, description] = ticketCreationStates[senderId];
 
                     // Map ticket type to a human-readable format
                     const ticketTypeMap = {
-                        "1": "Commodity Information Whatsapp",
-                        "2": "Customs Requirements / Paper Work Whatsapp",
-                        "3": "Product Inquiry Whatsapp",
-                        "4": "Rate Inquiry Whatsapp",
-                        "5": "Transit Time Whatsapp"
+                        "1": "Commodity Information ",
+                        "2": "Customs Requirements / Paper Work ",
+                        "3": "Product Inquiry ",
+                        "4": "Transit Time ",
+                        "5": "Corporate or Business Account"
                     };
 
                     const formattedTicketType = ticketTypeMap[ticketType] || ticketType;
@@ -259,10 +257,10 @@ ${formattedActivities}`;
                     // Prepare the ticket data for the API
                     const ticketData = {
                         custom_customer_name: customerName,
-                        subject: "General Query",
-                        raised_by: "mraza@ups.com",
-                        agent_group: "TeleSales",
-                        custom_employee: "EMP603",
+                        subject: "Whatsapp General Query",
+                        raised_by: email,
+                        agent_group: "Customer Support",
+                        custom_employee: "WebAPI",
                         ticket_type: formattedTicketType,
                         description: description,
                         custom_customer_email_address: email,
@@ -288,16 +286,38 @@ ${formattedActivities}`;
         }
 
         // CUSTOMER SERVICE FLOW (Option 5)
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         if (ticketCreationStatess[senderId]) {
             ticketCreationStatess[senderId].push(userMessage);
-
+        
             switch (ticketCreationStatess[senderId].length) {
                 case 1:
                     sendWhatsAppMessage(senderId, "📧 Please enter your email:");
                     break;
                 case 2:
                     if (!isValidEmail(ticketCreationStatess[senderId][1])) {
-                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email ending with @ups.com, @gmail.com, or @yahoo.com.");
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email.");
                         ticketCreationStatess[senderId].pop(); // Remove invalid email
                     } else {
                         sendWhatsAppMessage(senderId, "📱 Please enter your mobile number:");
@@ -311,37 +331,62 @@ ${formattedActivities}`;
                         sendWhatsAppMessage(senderId, "📱 Please Enter Your CallBack Number");
                     }
                     break;
+            
                 case 4:
-                    sendWhatsAppMessage(senderId, "✍️ Please describe your issue or query:");
+                    sendWhatsAppMessage(senderId, "📦 Please provide your tracking number.");
                     break;
                 case 5:
+                        sendWhatsAppMessage(senderId, "✍️ Please describe your issue or query:");
+                        break;    
+                case 6:
                     // Extract all collected data
-                    const [customerName, email, mobile, callback, query] = ticketCreationStatess[senderId];
-
+                    const [customerName, email, mobile, callback, trackingNumber, query] = ticketCreationStatess[senderId];
+        
                     // Prepare the ticket data for the API
                     const ticketData = {
-                    custom_customer_name: customerName,
-                    subject: "Call Back",
-                    raised_by: "mraza@ups.com",
-                    agent_group: "Customer Support",
-                    custom_employee: "EMP603",
-     
-                    description: `Details: ${query}, CallBack Number: ${callback} `,
-                    custom_customer_email_address: email,
-                    custom_customer_contact_number: mobile
-                };
-    
-                // Include optional fields if they are provided
-         
-                // Clear the state after ticket creation
-                delete ticketCreationStates[senderId];
-    
-                // Create the ticket in the system
-                createTicket(senderId, ticketData);
-                break;
+                        custom_customer_name: customerName,
+                        subject: "Whatsapp Call Back",
+                        raised_by: email,
+                        agent_group: "Customer Support",
+                        custom_employee: "WebAPI",
+                        ticket_type: "Call Back",
+                        description: `Details: ${query}, CallBack Number: ${callback} `,
+                        custom_customer_email_address: email,
+                        custom_customer_contact_number: mobile,
+                        custom_tracking_number_if_any: trackingNumber
+                    };
+        
+                    // Include tracking number only if it starts with "1Z"
+                    if (trackingNumber && trackingNumber.toUpperCase().startsWith("1Z")) {
+                        ticketData.custom_tracking_number_if_any = trackingNumber;
+                    }
+        
+                    // Clear the state after ticket creation
+                    delete ticketCreationStatess[senderId];
+        
+                    // Create the ticket in the system
+                    createTicket(senderId, ticketData);
+                    break;
+            }
+            return res.sendStatus(200);
         }
-        return res.sendStatus(200);
-    }
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 
         // OPTION SELECTION HANDLING
