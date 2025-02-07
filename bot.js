@@ -140,76 +140,105 @@ ${formattedActivities}`;
         // TICKET CREATION FLOW (Option 2)
         if (ticketCreationState[senderId]) {
             ticketCreationState[senderId].push(userMessage);
-
+        
             switch (ticketCreationState[senderId].length) {
                 case 1:
                     sendWhatsAppMessage(senderId, "📧 Please enter your email:");
                     break;
+        
                 case 2:
                     if (!isValidEmail(ticketCreationState[senderId][1])) {
-                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email");
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid email. Please enter a valid email:");
                         ticketCreationState[senderId].pop(); // Remove invalid email
                     } else {
                         sendWhatsAppMessage(senderId, "📱 Please enter your mobile number:");
                     }
                     break;
+        
                 case 3:
                     if (!isValidPhoneNumber(ticketCreationState[senderId][2])) {
-                        sendWhatsAppMessage(senderId, "⚠️ Invalid phone number. Please enter a valid phone number (9 to 13 digits).");
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid phone number. Please enter a valid phone number (9 to 13 digits):");
                         ticketCreationState[senderId].pop(); // Remove invalid phone number
                     } else {
                         sendWhatsAppMessage(senderId, "🌍 Please enter shipment country from:");
                     }
                     break;
+        
                 case 4:
                     sendWhatsAppMessage(senderId, "🌍 Please enter shipment country to:");
                     break;
+        
                 case 5:
                     sendWhatsAppMessage(senderId, "📦 Please select shipment type:\n1️⃣ Letter (0.5kg only)\n2️⃣ Document (0.5kg to 5kg only)\n3️⃣ Parcel (0.5kg to 70kg)");
                     break;
+        
                 case 6:
-                    sendWhatsAppMessage(senderId, "⚖️ Please enter shipment weight in kg:");
+                    if (!["1", "2", "3"].includes(userMessage)) {
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid selection. Please choose a valid shipment type:\n1️⃣ Letter (0.5kg only)\n2️⃣ Document (0.5kg to 5kg only)\n3️⃣ Parcel (0.5kg to 70kg)");
+                        ticketCreationState[senderId].pop(); // Remove invalid selection
+                    } else {
+                        sendWhatsAppMessage(senderId, "⚖️ Please enter shipment weight in kg:");
+                    }
                     break;
+        
                 case 7:
-                    // Extract all collected data
-                    const [customerName, email, mobile, shipmentFrom, shipmentTo, shipmentType, weight] = ticketCreationState[senderId];
-
-                    // Map shipment type to a human-readable format
-                    const shipmentTypeMap = {
-                        "1": "Letter (0.5kg only)",
-                        "2": "Document (0.5kg to 5kg only)",
-                        "3": "Parcel (0.5kg to 70kg)"
-                    };
-
-                    const formattedShipmentType = shipmentTypeMap[shipmentType] || shipmentType;
-
-                    // Prepare the ticket data for the API
-                    const ticketData = {
-                        custom_customer_name: customerName,
-                        custom_customer_email_address: email,
-                        custom_customer_contact_number: mobile,
-                        subject: "Rate Inquiry Whatsapp",
-                        raised_by: email,
-                        agent_group: "TeleSales",
-                        custom_employee: "WebAPI",
-                        ticket_type: "Rate Inquiry",
-                        description: `Shipment From: ${shipmentFrom}, Shipment To: ${shipmentTo}, Shipment Type: ${formattedShipmentType},Weight: ${weight}kg`
-                    };
-
-                    // Clear the state after ticket creation
-                    delete ticketCreationState[senderId];
-
-                    // Create the ticket in the system
-                    createTicket(senderId, ticketData);
+                    if (isNaN(userMessage) || parseFloat(userMessage) <= 0) {
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid weight. Please enter a valid shipment weight in kg:");
+                        ticketCreationState[senderId].pop(); // Remove invalid weight
+                    } else {
+                        // Extract all collected data
+                        const [customerName, email, mobile, shipmentFrom, shipmentTo, shipmentType, weight] = ticketCreationState[senderId];
+        
+                        // Map shipment type to human-readable format
+                        const shipmentTypeMap = {
+                            "1": "Letter (0.5kg only)",
+                            "2": "Document (0.5kg to 5kg only)",
+                            "3": "Parcel (0.5kg to 70kg)"
+                        };
+        
+                        const formattedShipmentType = shipmentTypeMap[shipmentType] || shipmentType;
+        
+                        // If user is selecting location, handle it separately
+                        if (locationSelectionState[senderId]) {
+                            const selectedLocation = officeLocations[userMessage];
+                            if (selectedLocation) {
+                                sendWhatsAppMessage(senderId, `📍 *${selectedLocation.name} Office Location:*\n${selectedLocation.address}\n${selectedLocation.link}\n0️⃣ Main Menu`);
+                            } else {
+                                sendWhatsAppMessage(senderId, "⚠️ Invalid selection. Please choose a valid option. \n0️⃣ Main Menu");
+                            }
+                            delete locationSelectionState[senderId]; // Clear state
+                            return res.sendStatus(200);
+                        }
+        
+                        // Prepare the ticket data for the API
+                        const ticketData = {
+                            custom_customer_name: customerName,
+                            custom_customer_email_address: email,
+                            custom_customer_contact_number: mobile,
+                            subject: "Rate Inquiry Whatsapp",
+                            raised_by: email,
+                            agent_group: "TeleSales",
+                            custom_employee: "WebAPI",
+                            ticket_type: "Rate Inquiry",
+                            description: `Shipment From: ${shipmentFrom}, Shipment To: ${shipmentTo}, Shipment Type: ${formattedShipmentType}, Weight: ${weight}kg`
+                        };
+        
+                        // Clear the state after ticket creation
+                        delete ticketCreationState[senderId];
+        
+                        // Create the ticket in the system
+                        createTicket(senderId, ticketData);
+                    }
                     break;
             }
             return res.sendStatus(200);
         }
+        
 
         // GENERAL QUERY FLOW (Option 4)
         if (ticketCreationStates[senderId]) {
             ticketCreationStates[senderId].push(userMessage);
-
+        
             switch (ticketCreationStates[senderId].length) {
                 case 1:
                     sendWhatsAppMessage(senderId, "📧 Please enter your email:");
@@ -227,34 +256,36 @@ ${formattedActivities}`;
                         sendWhatsAppMessage(senderId, "⚠️ Invalid phone number. Please enter a valid phone number (9 to 13 digits).");
                         ticketCreationStates[senderId].pop(); // Remove invalid phone number
                     } else {
-                        sendWhatsAppMessage(senderId, "❓ Please select your ticket type:\n1️⃣ Commodity Information\n2️⃣ Customs Requirements / Paper Work  \n3️⃣ Product Inquiry  \n4️⃣ Transit Time \n5️⃣ Corporate or Business Account" ) ;
+                        sendWhatsAppMessage(senderId, "❓ Please select your Request type:\n1️⃣ Commodity Information\n2️⃣ Customs Requirements / Paper Work\n3️⃣ Product Inquiry\n4️⃣ Transit Time\n5️⃣ Corporate or Business Account");
                     }
                     break;
                 case 4:
-                    sendWhatsAppMessage(senderId, "📦 (Optional) Enter tracking number if any:\n 0️⃣ to skip");
+                    if (!["1", "2", "3", "4", "5"].includes(ticketCreationStates[senderId][3])) {
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid option. Please select a valid Request type:\n1️⃣ Commodity Information\n2️⃣ Customs Requirements / Paper Work\n3️⃣ Product Inquiry\n4️⃣ Transit Time\n5️⃣ Corporate or Business Account");
+                        ticketCreationStates[senderId].pop(); // Remove invalid option
+                    } else {
+                        sendWhatsAppMessage(senderId, "📦 (Optional) Enter tracking number if any:\n0️⃣ to skip");
+                    }
                     break;
                 case 5:
-                    sendWhatsAppMessage(senderId, "🏦 (Optional) Enter your customer account number if any:\n 0️⃣ to skip");
+                    sendWhatsAppMessage(senderId, "🏦 (Optional) Enter your customer account number if any:\n0️⃣ to skip");
                     break;
                 case 6:
                     sendWhatsAppMessage(senderId, "✍️ Please describe your issue or query:");
                     break;
                 case 7:
-                    // Extract all collected data
                     const [customerName, email, mobile, ticketType, trackingNumber, accountNumber, description] = ticketCreationStates[senderId];
-
-                    // Map ticket type to a human-readable format
+        
                     const ticketTypeMap = {
-                        "1": "Commodity Information ",
-                        "2": "Customs Requirements / Paper Work ",
-                        "3": "Product Inquiry ",
-                        "4": "Transit Time ",
+                        "1": "Commodity Information",
+                        "2": "Customs Requirements / Paper Work",
+                        "3": "Product Inquiry",
+                        "4": "Transit Time",
                         "5": "Corporate or Business Account"
                     };
-
+        
                     const formattedTicketType = ticketTypeMap[ticketType] || ticketType;
-
-                    // Prepare the ticket data for the API
+        
                     const ticketData = {
                         custom_customer_name: customerName,
                         subject: "Whatsapp General Query",
@@ -266,48 +297,25 @@ ${formattedActivities}`;
                         custom_customer_email_address: email,
                         custom_customer_contact_number: mobile
                     };
-
-                    // Include optional fields if they are provided
+        
                     if (trackingNumber.toLowerCase() !== '0') {
                         ticketData.custom_tracking_number_if_any = trackingNumber;
                     }
                     if (accountNumber.toLowerCase() !== '0') {
                         ticketData.custom_customer_account_number = accountNumber;
                     }
-
-                    // Clear the state after ticket creation
+        
                     delete ticketCreationStates[senderId];
-
-                    // Create the ticket in the system
+        
                     createTicket(senderId, ticketData);
                     break;
             }
             return res.sendStatus(200);
         }
+        
 
         // CUSTOMER SERVICE FLOW (Option 5)
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         if (ticketCreationStatess[senderId]) {
             ticketCreationStatess[senderId].push(userMessage);
         
