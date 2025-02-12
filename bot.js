@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 const port = 3000;
-
+const cloudscraper = require('cloudscraper');
 const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0/475808092293189/messages';
 const ACCESS_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GGZCL8aTcLhLa8snXDcDWSGh35wUmCSjP8QRE94ZBhZC4eJZCLxEFS79YWn2evvGZBRQfGXsRAGgu6VHlQFrgwZA7BV7stZC4cv1VFWFAi9rnaOXR8ov8JYNxoRldWPy09HuD0IJ9ynQ3DAZDZD'; // Replace with your actual access token
 const VERIFY_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GGZCL8aTcLhLa8snXDcDWSGh35wUmCSjP8QRE94ZBhZC4eJZCLxEFS79YWn2evvGZBRQfGXsRAGgu6VHlQFrgwZA7BV7stZC4cv1VFWFAi9rnaOXR8ov8JYNxoRldWPy09HuD0IJ9ynQ3DAZDZD';
@@ -436,22 +436,26 @@ ${formattedActivities}`;
 // Function to create a ticket
 async function createTicket(senderId, ticketData) {
     try {
-        const response = await axios.post(`${FRAPPE_URL}/api/resource/HD%20Ticket`, ticketData, {
+        const options = {
+            method: 'POST',
+            url: `${FRAPPE_URL}/api/resource/HD%20Ticket`,
             headers: {
                 "Authorization": `token ${API_KEY}:${API_SECRET}`,
-                "Content-Type": "application/json"
-            }
-        });
+                "Content-Type": "application/json",
+       
+            },
+            body: JSON.stringify(ticketData)
+        };
+
+        const response = await cloudscraper(options);
         sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n0️⃣ Main Menu");
 
-        console.log("📌 Ticket created successfully:", response.data);
+        console.log("📌 Ticket created successfully:", response);
     } catch (error) {
-        console.error("🚨 Error creating ticket:", error.response?.data || error.message);
+        console.error("🚨 Error creating ticket:", error.message);
         sendWhatsAppMessage(senderId, "⚠️ Failed to create request. Please try again later. \n0️⃣ Main Menu");
-
     }
 }
-
 // Function to send a WhatsApp message
 async function sendWhatsAppMessage(to, message) {
     const payload = {
