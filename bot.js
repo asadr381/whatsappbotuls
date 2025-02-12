@@ -439,7 +439,10 @@ async function createTicket(senderId, ticketData) {
         const response = await axios.post(`${FRAPPE_URL}/api/resource/HD%20Ticket`, ticketData, {
             headers: {
                 "Authorization": `token ${API_KEY}:${API_SECRET}`,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
+                'Accept-Language': 'en-US,en;q=0.5'
             }
         });
         sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n0️⃣ Main Menu");
