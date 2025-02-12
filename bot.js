@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 const port = 3000;
+const tough = require('tough-cookie');
+const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 
 const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0/475808092293189/messages';
 const ACCESS_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GGZCL8aTcLhLa8snXDcDWSGh35wUmCSjP8QRE94ZBhZC4eJZCLxEFS79YWn2evvGZBRQfGXsRAGgu6VHlQFrgwZA7BV7stZC4cv1VFWFAi9rnaOXR8ov8JYNxoRldWPy09HuD0IJ9ynQ3DAZDZD'; // Replace with your actual access token
@@ -11,6 +13,8 @@ const VERIFY_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GG
 const FRAPPE_URL = "https://ups.sowaanerp.com";
 const API_KEY = "6deab0c07f750cc";
 const API_SECRET = "588f60f1a3a5255";
+
+
 
 // Email validation function
 function isValidEmail(email) {
@@ -227,7 +231,7 @@ ${formattedActivities}`;
                         delete ticketCreationState[senderId];
         
                         // Create the ticket in the system
-                        createTicket(senderId, ticketData);
+                        createTicketWithPuppeteer(senderId, ticketData);
                     }
                     break;
             }
@@ -307,7 +311,7 @@ ${formattedActivities}`;
         
                     delete ticketCreationStates[senderId];
         
-                    createTicket(senderId, ticketData);
+                    createTicketWithPuppeteer(senderId, ticketData);
                     break;
             }
             return res.sendStatus(200);
@@ -373,7 +377,7 @@ ${formattedActivities}`;
                     delete ticketCreationStatess[senderId];
         
                     // Create the ticket in the system
-                    createTicket(senderId, ticketData);
+                    createTicketWithPuppeteer(senderId, ticketData);
                     break;
             }
             return res.sendStatus(200);
@@ -416,26 +420,53 @@ ${formattedActivities}`;
 });
 
 // Function to create a ticket
-async function createTicket(senderId, ticketData) {
+const puppeteer = require('puppeteer');
+
+async function createTicketWithPuppeteer(senderId, ticketData) {
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+
     try {
-        const response = await axios.post(`${FRAPPE_URL}/api/resource/HD%20Ticket`, ticketData, {
-            headers: {
-                "Authorization": `token ${API_KEY}:${API_SECRET}`,
-                "Content-Type": "application/json",
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
-                'Accept-Language': 'en-US,en;q=0.5',
-                        "Referer": `${FRAPPE_URL}/`,
-        "Origin": `${FRAPPE_URL}`
-            }
+        // Navigate to the ticket creation page
+        await page.goto(`https://ups.sowaanerp.com/api/resource/HD%20Ticket`, {
+            waitUntil: 'networkidle2'
         });
+
+        // Set headers and cookies if needed
+        await page.setExtraHTTPHeaders({
+            "Authorization": `token 6deab0c07f750cc:588f60f1a3a5255`,
+            "Content-Type": "application/json",
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
+            'Accept-Language': 'en-US,en;q=0.5',
+            "Referer": `https://ups.sowaanerp.com/`,
+            "Origin": `https://ups.sowaanerp.com`
+        });
+
+        // Submit the ticket data
+        const response = await page.evaluate(async (ticketData) => {
+            return await fetch(`https://ups.sowaanerp.com/api/resource/HD%20Ticket`, {
+                method: 'POST',
+                headers: {
+                    "Authorization": `token 6deab0c07f750cc:588f60f1a3a5255`,
+                    "Content-Type": "application/json",
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                    "Referer": `https://ups.sowaanerp.com/`,
+                    "Origin": `https://ups.sowaanerp.com`
+                },
+                body: JSON.stringify(ticketData)
+            }).then(res => res.json());
+        }, ticketData);
+
         sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n0️⃣ Main Menu");
-
-        console.log("📌 Ticket created successfully:", response.data);
+        console.log("📌 Ticket created successfully:", response);
     } catch (error) {
-        console.error("🚨 Error creating ticket:", error.response?.data || error.message);
+        console.error("🚨 Error creating ticket:", error);
         sendWhatsAppMessage(senderId, "⚠️ Failed to create request. Please try again later. \n0️⃣ Main Menu");
-
+    } finally {
+        await browser.close();
     }
 }
 
