@@ -379,24 +379,6 @@ ${formattedActivities}`;
             return res.sendStatus(200);
         }
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
         // OPTION SELECTION HANDLING
         switch (userMessage) {
             case "0":
@@ -442,7 +424,9 @@ async function createTicket(senderId, ticketData) {
                 "Content-Type": "application/json",
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
-                'Accept-Language': 'en-US,en;q=0.5'
+                'Accept-Language': 'en-US,en;q=0.5',
+                        "Referer": `${FRAPPE_URL}/`,
+        "Origin": `${FRAPPE_URL}`
             }
         });
         sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n0️⃣ Main Menu");
