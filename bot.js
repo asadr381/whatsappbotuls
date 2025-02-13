@@ -434,7 +434,7 @@ ${formattedActivities}`;
 });
 
 // Function to create a ticket
-async function createTicket(senderId, ticketData) {
+async function createTicket(senderId, ticketData, attempt = 1) {
     try {
         const options = {
             method: 'POST',
@@ -456,7 +456,14 @@ async function createTicket(senderId, ticketData) {
         console.log("📌 Ticket created successfully:", response);
     } catch (error) {
         console.error("🚨 Error creating ticket:", error.message);
-        sendWhatsAppMessage(senderId, "⚠️ Failed to create request. Please try again later. \n0️⃣ Main Menu");
+        if (attempt < 2) { // You can change 2 to however many attempts you want.
+            sendWhatsAppMessage(senderId, "⚠️ Failed to create request. Retrying in 10 seconds...");
+            setTimeout(() => {
+              createTicket(senderId, ticketData, attempt + 1);
+            }, 10000); // 10,000 milliseconds = 10 seconds
+          } else {
+            sendWhatsAppMessage(senderId, "⚠️ Failed to create request after multiple attempts. Please try again later. \n0️⃣ Main Menu");
+          }
     }
 }
 // Function to send a WhatsApp message
