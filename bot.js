@@ -457,7 +457,7 @@ async function createTicket(senderId, ticketData, attempt = 1) {
     } catch (error) {
         console.error("🚨 Error creating ticket:", error.message);
         if (attempt < 2) { // You can change 2 to however many attempts you want.
-            sendWhatsAppMessage(senderId, "⚠️ Failed to create request. Retrying in 10 seconds...");
+            sendWhatsAppMessage(senderId, "⚠️ Please wait While we are submitting your request to our customer service agent... ");
             setTimeout(() => {
               createTicket(senderId, ticketData, attempt + 1);
             }, 10000); // 10,000 milliseconds = 10 seconds
