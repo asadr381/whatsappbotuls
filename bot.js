@@ -36,7 +36,8 @@ let userTrackingState = {};
 let ticketCreationState = {}; // State for ticket creation
 let locationSelectionState = {};
 let ticketCreationStates = {}; // State for general query
-let ticketCreationStatess = {}; // State for customer service
+let ticketCreationStatess = {};
+let ticketCreationStatesss = {}; // State for customer service
 
 // Define office locations
 const officeLocations = {
@@ -61,6 +62,7 @@ Please reply with an option number:
 3️⃣ Locate Nearest Express Centre  
 4️⃣ General Query  
 5️⃣ Arrange Call Back for Your Shipment
+6️⃣ Talk to Live Agent (9am to 5pm)
 `;
 
 // Webhook verification route (GET request)
@@ -425,7 +427,13 @@ ${formattedActivities}`;
                     ticketCreationStatess[senderId] = [];
                     sendWhatsAppMessage(senderId, "📝 Please enter your full name:");
                     
-                    break;        
+                    break;    
+                    case "6":
+                        ticketCreationStatesss[senderId] = [];
+                        sendWhatsAppMessage(senderId, "Please click the link to talk to a live agent: https://tawk.to/chat/67b325c3a01293190a6e9709/1ik9sn27l");
+                        break;
+                    
+                       
             default:
                 sendWhatsAppMessage(senderId, welcomeMessage);
         }
