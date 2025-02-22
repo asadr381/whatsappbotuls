@@ -11,7 +11,28 @@ const VERIFY_TOKEN = 'EAAIazcNERPEBO5kmUZBr9N5h56g42TjwFkV0pfVb4taplNIlPu6uA06GG
 const FRAPPE_URL = "https://ups.sowaanerp.com";
 const API_KEY = "6deab0c07f750cc";
 const API_SECRET = "588f60f1a3a5255";
+const moment = require('moment-timezone');
 
+function sendLiveAgentLink(senderId) {
+    // Get current time in Pakistan Time (PKT)
+    const now = moment().tz("Asia/Karachi");
+    const day = now.isoWeekday(); // 1 = Monday, 7 = Sunday
+    const hour = now.hour();
+
+    // Business hours: Monday - Friday, 9 AM - 5 PM PKT
+    if (day >= 1 && day <= 5 && hour >= 9 && hour < 17) {
+        sendWhatsAppMessage(senderId, "Please click the link to talk to a live agent: https://tawk.to/chat/67b325c3a01293190a6e9709/1ik9sn27l");
+    } else {
+        let nextBusinessDay;
+        if (day === 6 || day === 7) {  // If Saturday or Sunday, next business day is Monday
+            nextBusinessDay = "Monday, 9 AM to 5 PM PKT";
+        } else { // If it's a weekday but outside business hours
+            nextBusinessDay = "tomorrow, 9 AM to 5 PM PKT";
+        }
+
+        sendWhatsAppMessage(senderId, `Sorry, live agents are unavailable. Please contact us on ${nextBusinessDay}. \n0️⃣ Main Menu`);
+    }
+}
 // Email validation function
 function isValidEmail(email) {
     return email.includes("@") && email.includes(".");
@@ -430,7 +451,7 @@ ${formattedActivities}`;
                     break;    
                     case "6":
                         ticketCreationStatesss[senderId] = [];
-                        sendWhatsAppMessage(senderId, "Please click the link to talk to a live agent: https://tawk.to/chat/67b325c3a01293190a6e9709/1ik9sn27l");
+                        sendLiveAgentLink(senderId);
                         break;
                     
                        
