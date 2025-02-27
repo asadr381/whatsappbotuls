@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path'); // Add path module
 const app = express();
 const port = 3000;
 const cloudscraper = require('cloudscraper');
@@ -13,6 +14,9 @@ const API_KEY = "6deab0c07f750cc";
 const API_SECRET = "588f60f1a3a5255";
 const moment = require('moment-timezone');
 
+// Serve static files from the "public" directory
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
 function sendLiveAgentLink(senderId) {
     // Get current time in Pakistan Time (PKT)
     const now = moment().tz("Asia/Karachi");
@@ -21,7 +25,7 @@ function sendLiveAgentLink(senderId) {
 
     // Business hours: Monday - Friday, 9 AM - 5 PM PKT
     if (day >= 1 && day <= 5 && hour >= 9 && hour < 17) {
-        sendWhatsAppMessage(senderId, "Please click the link to talk to a live agent: https://tawk.to/chat/67b325c3a01293190a6e9709/1ik9sn27l");
+        sendWhatsAppMessage(senderId, "Please click the link to talk to a live agent: https://tawk.to/chat/67b325c3a01293190a6e9709/1ik9sn27l  \n0️⃣ Main Menu");
     } else {
         let nextBusinessDay;
         if (day === 6 || day === 7) {  // If Saturday or Sunday, next business day is Monday
@@ -57,8 +61,9 @@ let userTrackingState = {};
 let ticketCreationState = {}; // State for ticket creation
 let locationSelectionState = {};
 let ticketCreationStates = {}; // State for general query
-let ticketCreationStatess = {};
-let ticketCreationStatesss = {}; // State for customer service
+let ticketCreationStatess = {}; // State for customer service
+let ticketCreationStatesss = {}; // State for live agent
+let pictureTemplateSent = {}; // State to track if picture template was sent
 
 // Define office locations
 const officeLocations = {
@@ -72,8 +77,7 @@ const officeLocations = {
 
 const welcomeMessage = `🌟 *Welcome to UNIVERSAL LOGISTICS SERVICES, AUTHORIZED SERVICE CONTRACTOR FOR UPS* 🌟
 
-Dense fog has enveloped many areas, creating visibility challenges.  
-This fog may slow us down, but it will not stop us. Our commitment to serving you remains unwavering.  
+*This Ramadan send your parcels at unbeatable rates! Avail our special offer up to 85% Discount and stay connected!*
 
 📦 *Thank you for choosing ULS!*  
 
@@ -110,6 +114,16 @@ app.post('/webhook', async (req, res) => {
     if (message && contact) {
         const senderId = message.from;
         const userMessage = message.text?.body.trim();
+
+        // Send picture template if not sent before
+        if (!pictureTemplateSent[senderId]) {
+            await sendPictureTemplate(senderId);
+            pictureTemplateSent[senderId] = true;
+            sendWhatsAppMessage(senderId, welcomeMessage);
+        }
+
+        // Send main menu message
+
 
         // TRACKING FLOW (Option 1)
         if (userTrackingState[senderId]) {
@@ -456,7 +470,7 @@ ${formattedActivities}`;
                     
                        
             default:
-                sendWhatsAppMessage(senderId, welcomeMessage);
+                sendWhatsAppMessage(`0️⃣ Main Menu`);
         }
     }
     res.sendStatus(200);
@@ -514,6 +528,50 @@ async function sendWhatsAppMessage(to, message) {
         console.log('✅ Message sent successfully:', JSON.stringify(response.data, null, 2));
     } catch (error) {
         console.error('❌ Error sending message:', error.response ? error.response.data : error.message);
+    }
+}
+
+// Function to send a picture template
+async function sendPictureTemplate(to) {
+    const payload = {
+        messaging_product: 'whatsapp',
+        to: to,
+        type: 'template',
+        template: {
+            name: 'picture', // Replace with your actual template name
+            language: {
+                code: 'en' // Replace with your template language code
+            },
+            components: [
+                {
+                    type: 'header',
+                    parameters: [
+                        {
+                            type: 'image',
+                            image: {
+                                link: 'https://i.imgur.com/3Qmdsdl.jpeg' // Replace with your actual image URL from Imgur
+                            }
+                        }
+                    ]
+                },
+                {
+                    type: 'body',
+                    parameters: []
+                }
+            ]
+        }
+    };
+
+    try {
+        const response = await axios.post(WHATSAPP_API_URL, payload, {
+            headers: {
+                Authorization: `Bearer ${ACCESS_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log('✅ Picture template sent successfully:', JSON.stringify(response.data, null, 2));
+    } catch (error) {
+        console.error('❌ Error sending picture template:', error.response ? error.response.data : error.message);
     }
 }
 
