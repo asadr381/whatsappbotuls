@@ -252,7 +252,7 @@ ${formattedActivities}`;
                             custom_customer_name: customerName,
                             custom_customer_email_address: email,
                             custom_customer_contact_number: mobile,
-                            subject: "Rate Inquiry Whatsapp",
+                            subject: "Whatsapp Rate Inquiry",
                             raised_by: email,
                             agent_group: "TeleSales",
                             custom_employee: "WebAPI",
