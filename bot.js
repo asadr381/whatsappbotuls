@@ -145,7 +145,7 @@ app.post('/webhook', async (req, res) => {
 \ud83d\udcc5 *Delivery Date:* ${packageData.deliveryDate ? packageData.deliveryDate[0]?.date : "N/A"}
 \ud83d\udce6 *Weight:* ${packageData.weight?.weight || "N/A"} kg
 
- *⚠️Disclaimer: This Shipement Detail is powered by UPS.COM*
+ *⚠️Disclaimer: This shipement tracking is powered by UPS.COM*
 
 ✈️ *Shipment Journey:*
 ${formattedActivities}`;
