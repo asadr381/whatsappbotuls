@@ -116,12 +116,12 @@ app.post('/webhook', async (req, res) => {
         const userMessage = message.text?.body.trim();
 
         // Send picture template if not sent before
-        if (/^(hi|hello|hey)$/i.test(userMessage)) {
+        if (!pictureTemplateSent[senderId]) {
             await sendPictureTemplate(senderId);
             pictureTemplateSent[senderId] = true;
             sendWhatsAppMessage(senderId, welcomeMessage);
-            return res.sendStatus(200);
         }
+
         // Send main menu message
 
 
@@ -439,7 +439,6 @@ ${formattedActivities}`;
         // OPTION SELECTION HANDLING
         switch (userMessage) {
             case "0":
-                 sendMenuWithPicture(senderId);
                 sendWhatsAppMessage(senderId, welcomeMessage);
                 break;
             case "1":
@@ -473,7 +472,6 @@ ${formattedActivities}`;
                     
                        
             default:
-                 sendMenuWithPicture(senderId);
                 sendWhatsAppMessage(`0️⃣ Main Menu`);
         }
     }
