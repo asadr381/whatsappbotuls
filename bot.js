@@ -116,12 +116,12 @@ app.post('/webhook', async (req, res) => {
         const userMessage = message.text?.body.trim();
 
         // Send picture template if not sent before
-        if (!pictureTemplateSent[senderId]) {
+        if (/^(hi|hello|hey)$/i.test(userMessage)) {
             await sendPictureTemplate(senderId);
             pictureTemplateSent[senderId] = true;
             sendWhatsAppMessage(senderId, welcomeMessage);
+            return res.sendStatus(200);
         }
-
         // Send main menu message
 
 
