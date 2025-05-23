@@ -439,6 +439,7 @@ ${formattedActivities}`;
         // OPTION SELECTION HANDLING
         switch (userMessage) {
             case "0":
+                 sendMenuWithPicture(senderId);
                 sendWhatsAppMessage(senderId, welcomeMessage);
                 break;
             case "1":
@@ -472,6 +473,7 @@ ${formattedActivities}`;
                     
                        
             default:
+                 sendMenuWithPicture(senderId);
                 sendWhatsAppMessage(`0️⃣ Main Menu`);
         }
     }
