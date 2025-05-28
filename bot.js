@@ -132,7 +132,7 @@ app.post('/webhook', async (req, res) => {
 
             sendWhatsAppMessage(senderId, `\ud83d\udd0d Fetching details for tracking number: *${trackingNumber}*...`);
             try {
-                const trackingResponse = await axios.get(`https://excel-api-0x2r.onrender.com/track/${trackingNumber}`);
+                const trackingResponse = await axios.get(`https://excel-api-gl6f.onrender.com/track/${trackingNumber}`);
                 const packageData = trackingResponse.data.trackResponse?.shipment[0]?.package[0];
 
                 if (packageData) {
