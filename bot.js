@@ -551,7 +551,7 @@ async function sendPictureTemplate(to) {
                         {
                             type: 'image',
                             image: {
-                                link: 'https://i.imgur.com/xZnUz5W.jpeg' // Replace with your actual image URL from Imgur
+                                link: 'https://i.imgur.com/ntVVtas.jpeg' // Replace with your actual image URL from Imgur
                             }
                         }
                     ]
