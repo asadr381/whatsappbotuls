@@ -538,9 +538,9 @@ async function sendPictureTemplate(to) {
     const payload = {
         messaging_product: 'whatsapp',
         to: to,
-        type: 'template',
+        type: 'marketing',
         template: {
-            name: 'picture', // Replace with your actual template name
+            name: 'marketing', // Replace with your actual template name
             language: {
                 code: 'en' // Replace with your template language code
             },
